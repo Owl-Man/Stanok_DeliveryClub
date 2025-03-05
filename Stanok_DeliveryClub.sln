@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35818.85
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stanok_DeliveryClub", "Stanok_DeliveryClub\Stanok_DeliveryClub.csproj", "{EFE615E5-1134-4E2B-B24D-C34797070809}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B050A719-E225-49C1-A68E-3975E82227A1} = {B050A719-E225-49C1-A68E-3975E82227A1}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stanok.DataAccess", "Stanok.DataAccess\Stanok.DataAccess.csproj", "{C47739EB-6512-456A-B22F-D931736DFB9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stanok.Core", "Stanok.Core\Stanok.Core.csproj", "{B050A719-E225-49C1-A68E-3975E82227A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stanok.Application", "Stanok.Application\Stanok.Application.csproj", "{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B050A719-E225-49C1-A68E-3975E82227A1} = {B050A719-E225-49C1-A68E-3975E82227A1}
+		{C47739EB-6512-456A-B22F-D931736DFB9C} = {C47739EB-6512-456A-B22F-D931736DFB9C}
+		{EFE615E5-1134-4E2B-B24D-C34797070809} = {EFE615E5-1134-4E2B-B24D-C34797070809}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EFE615E5-1134-4E2B-B24D-C34797070809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFE615E5-1134-4E2B-B24D-C34797070809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFE615E5-1134-4E2B-B24D-C34797070809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFE615E5-1134-4E2B-B24D-C34797070809}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C47739EB-6512-456A-B22F-D931736DFB9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C47739EB-6512-456A-B22F-D931736DFB9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C47739EB-6512-456A-B22F-D931736DFB9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C47739EB-6512-456A-B22F-D931736DFB9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B050A719-E225-49C1-A68E-3975E82227A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B050A719-E225-49C1-A68E-3975E82227A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B050A719-E225-49C1-A68E-3975E82227A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B050A719-E225-49C1-A68E-3975E82227A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {46D77DF0-30BC-4266-B822-FE145F71A657}
+	EndGlobalSection
+EndGlobal

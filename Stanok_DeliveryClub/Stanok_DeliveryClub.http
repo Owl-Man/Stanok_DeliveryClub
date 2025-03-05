@@ -1,0 +1,6 @@
+@Stanok_DeliveryClub_HostAddress = http://localhost:5116
+
+GET {{Stanok_DeliveryClub_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
