@@ -4,6 +4,11 @@ using Stanok.Core.Models;
 namespace Stanok.Application.Services;
 public class DeliveryService(IDeliveriesRepository deliveriesRepository) : IDeliveryService
 {
+    public List<Delivery> GetAll()
+    {
+        return deliveriesRepository.GetAll();
+    }
+
     public Delivery GetDeliveryById(Guid id)
     {
         return deliveriesRepository.GetById(id);

@@ -5,7 +5,7 @@ using Stanok.Core.Models;
 
 namespace Stanok.Application.Services;
 
-public class DeliveryTimeoutService(IDeliveriesRepository deliveriesRepository, ILogger<DeliveryTimeoutService> logger) : BackgroundService, IDeliveryTimeoutService
+public class DeliveryTimeoutService(ILogger<DeliveryTimeoutService> logger) : BackgroundService, IDeliveryTimeoutService
 {
     public const int MAX_STATUS_IGNORE_TIME = 10;
 
@@ -14,7 +14,7 @@ public class DeliveryTimeoutService(IDeliveriesRepository deliveriesRepository, 
         return Task.CompletedTask;
     }
 
-    public Task StartTimerForNewDelivery(Guid deliveryId)
+    public Task StartTimerForNewDelivery(IDeliveryService deliveryService, Guid deliveryId)
     {
         try
         {
@@ -23,7 +23,7 @@ public class DeliveryTimeoutService(IDeliveriesRepository deliveriesRepository, 
             _ = Task.Run(async () =>
             {
                 await Task.Delay(MAX_STATUS_IGNORE_TIME);
-                CheckDeliveryStatus(deliveryId);
+                CheckDeliveryStatus(deliveryService, deliveryId);
             });
 
             logger.LogInformation("Delayed task completed successfully.");
@@ -36,11 +36,11 @@ public class DeliveryTimeoutService(IDeliveriesRepository deliveriesRepository, 
         return Task.CompletedTask;
     }
 
-    private void CheckDeliveryStatus(Guid deliveryId)
+    private void CheckDeliveryStatus(IDeliveryService deliveryService, Guid deliveryId)
     {
-        if (deliveriesRepository.GetById(deliveryId).Status == Status.CREATE)
+        if (deliveryService.GetDeliveryById(deliveryId).Status == Status.CREATE)
         {
-            deliveriesRepository.Update(deliveryId, Status.CANCELED);
+            deliveryService.Update(deliveryId, Status.CANCELED);
         }
     }
 }

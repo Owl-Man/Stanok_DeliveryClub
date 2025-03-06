@@ -21,4 +21,13 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
 
         return Ok(response);
     }
+
+    [HttpGet]
+    public ActionResult<List<DeliveryResponse>> GetAllDeliveries()
+    {
+        var deliveries = deliveryService.GetAll();
+
+        var response = deliveries.Select(d => new DeliveryResponse(d.Id, d.StanokId, d.Status));
+        return Ok(response);
+    }
 }

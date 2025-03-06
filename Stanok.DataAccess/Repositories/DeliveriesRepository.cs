@@ -8,6 +8,25 @@ namespace Stanok.DataAccess.Repositories;
 
 public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRepository> logger) : IDeliveriesRepository
 {
+    public List<Delivery> GetAll()
+    {
+        try
+        {
+            var deliveryEntities = context.Deliveries
+                .AsNoTracking()
+                .ToList();
+            List<Delivery> deliveries = deliveryEntities
+                .Select(d => new Delivery(d.Id, d.StanokId, d.Status))
+                .ToList();
+            return deliveries;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении доставок.");
+            throw;
+        }
+    }
+
     public Delivery GetById(Guid id)
     {
         try
