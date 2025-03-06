@@ -24,6 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Stanok.Application\Stanok.Application.csproj" />
 	  <ProjectReference Include="..\Stanok.DataAccess\Stanok.DataAccess.csproj" />
 	</ItemGroup>
 
