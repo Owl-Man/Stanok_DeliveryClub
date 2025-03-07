@@ -16,7 +16,7 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
                 .AsNoTracking()
                 .ToList();
             List<Delivery> deliveries = deliveryEntities
-                .Select(d => new Delivery(d.Id, d.StanokId, d.Status))
+                .Select(d => new Delivery(d.Id, d.StanokId, d.Status, d.CreatedAt))
                 .ToList();
             return deliveries;
         }
@@ -35,7 +35,7 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
                 .AsNoTracking()
                 .FirstOrDefault(d => d.Id == id);
 
-            Delivery delivery = new Delivery(deliveryEntity.Id, deliveryEntity.StanokId, deliveryEntity.Status);
+            Delivery delivery = new Delivery(deliveryEntity.Id, deliveryEntity.StanokId, deliveryEntity.Status, deliveryEntity.CreatedAt);
 
             return delivery;
         }
@@ -50,7 +50,7 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
     {
         try
         {
-            var deliveryEntity = new DeliveryEntity() { Id = id, StanokId = stanokId, Status = Status.CREATE };
+            var deliveryEntity = new DeliveryEntity() { Id = id, StanokId = stanokId, Status = Status.CREATE, CreatedAt = DateTime.UtcNow};
 
             context.Deliveries.AddAsync(deliveryEntity);
             context.SaveChangesAsync();
