@@ -13,8 +13,8 @@ public class StanoksRepository(StanokDbContext context, ILogger<StanoksRepositor
         {
             var stanok = new StanokEntity() { Id = id, Name = name, Manufacturer = manufacturer, Price = price };
 
-            context.Stanoks.AddAsync(stanok);
-            context.SaveChangesAsync();
+            context.Stanoks.Add(stanok);
+            context.SaveChanges();
 
             return stanok.Id;
         }

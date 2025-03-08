@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stanok.Core\Stanok.Core.csproj" />
+    <ProjectReference Include="..\Stanok.DataAccess\Stanok.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 
 namespace Stanok.Application.Services;
 
-public class DeliveryTimeoutService : BackgroundService, IDisposable, IDeliveryTimeoutService
+public class DeliveryTimeoutService : BackgroundService, IHostedService, IDisposable, IDeliveryTimeoutService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<DeliveryTimeoutService> _logger;
 
-    public const int MAX_STATUS_IGNORE_TIME = 10;
+    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(20);
+
     private readonly Dictionary<Guid, Timer> _timers;
 
     public DeliveryTimeoutService(IServiceScopeFactory scopeFactory, ILogger<DeliveryTimeoutService> logger)
@@ -28,6 +29,17 @@ public class DeliveryTimeoutService : BackgroundService, IDisposable, IDeliveryT
     public Task StartAsync(CancellationToken cancellationToken)
     {
         Task.Run(() => RestoreTimers());
+
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        foreach (var timer in _timers.Values)
+        {
+            timer.Dispose();
+        }
+
         return Task.CompletedTask;
     }
 
@@ -36,26 +48,31 @@ public class DeliveryTimeoutService : BackgroundService, IDisposable, IDeliveryT
         return Task.CompletedTask;
     }
 
-    public Task StartTimerForNewDelivery(IDeliveryService deliveryService, Guid deliveryId)
+    public void DisposeTimer(Guid deliveryId)
+    {
+        if (_timers.ContainsKey(deliveryId))
+        {
+            _timers[deliveryId].Dispose();
+            _timers.Remove(deliveryId);
+        }
+    }
+
+    public Task StartTimerForNewDelivery(Guid deliveryId) => StartTimerForNewDelivery(deliveryId, MAX_STATUS_IGNORE_TIME);
+
+    public Task StartTimerForNewDelivery(Guid deliveryId,  TimeSpan timeout) 
     {
         try
         {
             _logger.LogInformation("Starting delayed task execution...");
 
             var timer = new Timer(
-                _ => CheckDeliveryStatus(deliveryService, deliveryId),
+                _ => HasDeliveryStatusTimedOut(deliveryId),
                 null,
-                MAX_STATUS_IGNORE_TIME,
-                Timeout.Infinite
+                timeout,
+                Timeout.InfiniteTimeSpan
             );
 
             _timers[deliveryId] = timer;
-
-            /*_ = Task.Run(async () =>
-            {
-                await Task.Delay(MAX_STATUS_IGNORE_TIME);
-                CheckDeliveryStatus(deliveryService, deliveryId);
-            });*/
 
             _logger.LogInformation("Delayed task completed successfully.");
         }
@@ -67,30 +84,51 @@ public class DeliveryTimeoutService : BackgroundService, IDisposable, IDeliveryT
         return Task.CompletedTask;
     }
 
-    private void CheckDeliveryStatus(IDeliveryService deliveryService, Guid deliveryId)
+    private bool HasDeliveryStatusTimedOut(Guid deliveryId)
     {
+        using var scope = _scopeFactory.CreateScope();
+        var deliveryService = scope.ServiceProvider.GetRequiredService<IDeliveryService>();
+
         var delivery = deliveryService.GetDeliveryById(deliveryId);
+
+        if (delivery == null)
+        {
+            DisposeTimer(deliveryId);
+            return false;
+        }
+
         if (delivery.Status == Status.CREATE
-            && delivery.CreatedAt.AddSeconds(MAX_STATUS_IGNORE_TIME) > DateTime.UtcNow)
+            && DateTime.UtcNow >= delivery.CreatedAt.AddSeconds(MAX_STATUS_IGNORE_TIME.TotalSeconds))
         {
             deliveryService.Update(deliveryId, Status.CANCELED);
+
+            DisposeTimer(deliveryId);
+
+            return true;
         }
+
+        return false;
     }
 
     private async Task RestoreTimers() 
     {
         using var scope = _scopeFactory.CreateScope();
 
-         var context = scope.ServiceProvider.GetRequiredService<StanokDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<StanokDbContext>();
 
         var deliveries = await context.Deliveries
             .Where(d => d.Status == Status.CREATE)
             .ToListAsync();
 
+        var deliveryService = scope.ServiceProvider.GetRequiredService<IDeliveryService>();
+
         foreach (var delivery in deliveries)
         {
-            var deliveryService = scope.ServiceProvider.GetRequiredService<IDeliveryService>();
-            await StartTimerForNewDelivery(deliveryService, delivery.Id);
+            if (HasDeliveryStatusTimedOut(delivery.Id)) continue;
+
+            var leftTimeForIgnore = MAX_STATUS_IGNORE_TIME.TotalSeconds - (DateTime.UtcNow - delivery.CreatedAt).TotalSeconds;
+
+            await StartTimerForNewDelivery(delivery.Id, TimeSpan.FromSeconds(leftTimeForIgnore));
         }
     }
 }

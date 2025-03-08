@@ -33,7 +33,13 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
         {
             var deliveryEntity = context.Deliveries
                 .AsNoTracking()
-                .FirstOrDefault(d => d.Id == id);
+                .SingleOrDefault(d => d.Id == id);
+
+            if (deliveryEntity == null)
+            {
+                logger.LogWarning("Доставка с id {DeliveryId} не найдена.", id);
+                return null; // Возвращаем null вместо исключения
+            }
 
             Delivery delivery = new Delivery(deliveryEntity.Id, deliveryEntity.StanokId, deliveryEntity.Status, deliveryEntity.CreatedAt);
 
@@ -52,8 +58,8 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
         {
             var deliveryEntity = new DeliveryEntity() { Id = id, StanokId = stanokId, Status = Status.CREATE, CreatedAt = DateTime.UtcNow};
 
-            context.Deliveries.AddAsync(deliveryEntity);
-            context.SaveChangesAsync();
+            context.Deliveries.Add(deliveryEntity);
+            context.SaveChanges();
 
             return deliveryEntity.Id;
         }

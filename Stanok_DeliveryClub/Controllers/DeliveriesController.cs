@@ -13,11 +13,11 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
     [HttpPut("delivery.status.change")]
     public ActionResult<DeliveryResponse> ChangeDeliveryStatus([FromBody] DeliveryRequest request)
     {
-        var delivery = new Delivery(Guid.NewGuid(), request.id, request.status, request.craetedAt);
+        var delivery = deliveryService.GetDeliveryById(request.id);
 
-        var deliveryId = deliveryService.Update(delivery.Id, delivery.Status);
+        var deliveryId = deliveryService.Update(request.id, request.status);
 
-        var response = new DeliveryResponse(deliveryId, request.id, request.status, request.craetedAt);
+        var response = new DeliveryResponse(deliveryId, request.id, request.status, delivery.CreatedAt);
 
         return Ok(response);
     }

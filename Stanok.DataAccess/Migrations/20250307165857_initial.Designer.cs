@@ -12,7 +12,7 @@ using Stanok.DataAccess;
 namespace Stanok.DataAccess.Migrations
 {
     [DbContext(typeof(StanokDbContext))]
-    [Migration("20250305195410_initial")]
+    [Migration("20250307165857_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -30,6 +30,9 @@ namespace Stanok.DataAccess.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("StanokId")
                         .HasColumnType("uuid");

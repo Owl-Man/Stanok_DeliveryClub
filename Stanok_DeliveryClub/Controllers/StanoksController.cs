@@ -18,9 +18,9 @@ public class StanoksController(IStanokService stanokService, IDeliveryService de
 
         var deliveryID = deliveryService.Create(Guid.NewGuid(), stanokId);
 
-        deliveryTimeoutService.StartTimerForNewDelivery(deliveryService, deliveryID);
+        deliveryTimeoutService.StartTimerForNewDelivery(deliveryID);
 
-        var response = new StanokResponse(stanokId, request.name, request.manufacturer, request.price);
+        var response = new StanokResponse(stanokId, request.name, request.manufacturer, request.price, deliveryID);
 
         return Ok(response);
     }
