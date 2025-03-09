@@ -1,4 +1,5 @@
-﻿namespace Stanok.Core.Abstractions
+﻿
+namespace Stanok.Core.Abstractions
 {
     public interface IStanokService
     {

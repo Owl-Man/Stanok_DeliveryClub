@@ -48,12 +48,20 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
         return Task.CompletedTask;
     }
 
-    public void DisposeTimer(Guid deliveryId)
+    public void DisposeTimerForDelivery(Guid deliveryId)
     {
         if (_timers.ContainsKey(deliveryId))
         {
             _timers[deliveryId].Dispose();
             _timers.Remove(deliveryId);
+        }
+    }
+
+    public void DisposeAll() 
+    {
+        foreach (var timer in _timers.Values)
+        {
+            timer.Dispose();
         }
     }
 
@@ -93,7 +101,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
 
         if (delivery == null)
         {
-            DisposeTimer(deliveryId);
+            DisposeTimerForDelivery(deliveryId);
             return false;
         }
 
@@ -102,7 +110,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
         {
             deliveryService.Update(deliveryId, Status.CANCELED);
 
-            DisposeTimer(deliveryId);
+            DisposeTimerForDelivery(deliveryId);
 
             return true;
         }

@@ -33,7 +33,7 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
         {
             var deliveryEntity = context.Deliveries
                 .AsNoTracking()
-                .SingleOrDefault(d => d.Id == id);
+                .FirstOrDefault(d => d.Id == id);
 
             if (deliveryEntity == null)
             {

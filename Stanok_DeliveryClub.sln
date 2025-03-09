@@ -18,6 +18,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stanok.Application", "Stano
 		{C47739EB-6512-456A-B22F-D931736DFB9C} = {C47739EB-6512-456A-B22F-D931736DFB9C}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stanok.Tests", "Stanok.Tests\Stanok.Tests.csproj", "{46269E59-8DE5-4364-89DB-CC68A58659F1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EFE615E5-1134-4E2B-B24D-C34797070809} = {EFE615E5-1134-4E2B-B24D-C34797070809}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +45,10 @@ Global
 		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C1BFB24-58E3-4F7A-8796-3BE6F0EACB17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46269E59-8DE5-4364-89DB-CC68A58659F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46269E59-8DE5-4364-89DB-CC68A58659F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46269E59-8DE5-4364-89DB-CC68A58659F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46269E59-8DE5-4364-89DB-CC68A58659F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
