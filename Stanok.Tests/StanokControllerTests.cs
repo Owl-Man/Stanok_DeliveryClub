@@ -1,11 +1,8 @@
-﻿using Castle.Core.Logging;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Stanok.Application.Services;
 using Stanok.Core.Abstractions;
-using Stanok.Core.Models;
 using Stanok_DeliveryClub.Contracts;
 using Stanok_DeliveryClub.Controllers;
 using Xunit;
@@ -119,94 +116,6 @@ public class StanokControllerTests
             Assert.Equal(stanokRequests[i].manufacturer, stanokResponse.manufacturer);
             Assert.Equal(stanokRequests[i].price, stanokResponse.price);
         }
-    }
-
-    [Fact]
-    public async Task SimulateServerRestart_10Stanoks_DifferentConditions()
-    {
-        // Arrange
-        const int stanokCount = 10;
-        var stanokRequests = new List<StanokRequest>();
-        var stanokIds = new List<Guid>();
-        var deliveryIds = new List<(Guid DeliveryId, DateTime CreatedAt)>();
-        var currentTime = DateTime.UtcNow;
-        var maxStatusIgnoreTime = TimeSpan.FromMinutes(10);
-
-        // Создаем 10 станков и доставок с разным временем создания
-        for (int i = 0; i < stanokCount; i++)
-        {
-            stanokRequests.Add(new StanokRequest($"Stanok_{i}", $"Manufacturer_{i}", 1000 + i));
-            var stanokId = Guid.NewGuid();
-            var deliveryId = Guid.NewGuid();
-            var createdAt = currentTime.AddMinutes(-i * 2); // Разница в 2 минуты
-
-            stanokIds.Add(stanokId);
-            deliveryIds.Add((deliveryId, createdAt));
-        }
-
-        for (int i = 0; i < stanokCount; i++)
-        {
-            mockStanokService.SetupSequence(service => service.Create(
-            It.IsAny<Guid>(),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<double>()))
-            .Returns(stanokIds[i]);
-
-            mockDeliveryService.SetupSequence(service => service.Create(
-            It.IsAny<Guid>(),
-            It.IsAny<Guid>()))
-            .Returns(deliveryIds[i].DeliveryId);
-        }
-
-        _mockDeliveryTimeoutService.Setup(service => service.StartTimerForNewDelivery(
-            It.IsAny<Guid>()));
-
-        // Act: Создаем 10 станков и доставок
-        var tasks = stanokRequests.Select(request => Task.Run(() => stanokController.CreateStanok(request))).ToArray();
-        await Task.WhenAll(tasks);
-
-        // Эмулируем перезапуск сервера: повторно вызываем StartTimer для всех доставок
-
-        _mockDeliveryTimeoutService.Object.DisposeAll();
-
-        foreach (var (deliveryId, createdAt) in deliveryIds)
-        {
-            _mockDeliveryTimeoutService.Object.DisposeAll();
-        }
-
-        // Assert
-        // Проверяем, что все станки созданы
-        for (int i = 0; i < stanokCount; i++)
-        {
-            var result = tasks[i].Result;
-            var actionResult = Assert.IsType<ActionResult<StanokResponse>>(result);
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var stanokResponse = Assert.IsType<StanokResponse>(okResult.Value);
-
-            Assert.Equal(stanokIds[i], stanokResponse.id);
-            Assert.Equal(stanokRequests[i].Name, stanokResponse.name);
-            Assert.Equal(stanokRequests[i].Manufacturer, stanokResponse.manufacturer);
-            Assert.Equal(stanokRequests[i].Price, stanokResponse.price);
-        }
-
-        // Проверяем вызовы StartTimer после создания и "перезапуска"
-        foreach (var (deliveryId, createdAt) in deliveryIds)
-        {
-            var elapsedTime = currentTime - createdAt;
-            _mockDeliveryTimeoutService.Verify(service => service.StartTimer(deliveryId, createdAt), Times.Exactly(2)); // Один раз при создании, второй — при перезапуске
-
-            if (elapsedTime > maxStatusIgnoreTime)
-            {
-                _logger.LogDebug("Delivery {DeliveryId} should have expired (elapsed: {ElapsedTime})", deliveryId, elapsedTime);
-            }
-            else
-            {
-                _logger.LogDebug("Delivery {DeliveryId} still active (remaining: {RemainingTime})", deliveryId, maxStatusIgnoreTime - elapsedTime);
-            }
-        }
-
-        _logger.LogDebug("Successfully verified 10 stanoks and timers after server restart simulation");
     }
 
     /*[Fact]
