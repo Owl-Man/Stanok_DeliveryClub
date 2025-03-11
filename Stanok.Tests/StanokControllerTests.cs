@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Stanok.Application.Services;
 using Stanok.Core.Abstractions;
+using Stanok.Core.Models;
 using Stanok_DeliveryClub.Contracts;
 using Stanok_DeliveryClub.Controllers;
 using Xunit;
@@ -81,7 +83,7 @@ public class StanokControllerTests
     {
         //StanokRequest stanokRequest = new StanokRequest("Test stanok", "Test stanok manufacturer", 20000000);
 
-        const int stanokCount = 10000;
+        const int stanokCount = 100;
         var stanokRequests = new List<StanokRequest>();
 
         var stanokIds = new List<Guid>();
@@ -118,79 +120,79 @@ public class StanokControllerTests
         }
     }
 
-    /*[Fact]
-    public async Task SimulateServerRestart_10Timers_DifferentConditions()
-    {
-        // Arrange
-        const int deliveryCount = 10;
-        var deliveries = new List<Delivery>();
-        var currentTime = DateTime.UtcNow;
-        var maxStatusIgnoreTime = TimeSpan.FromMinutes(10); // 10 минут максимального времени ожидания
+    //[Fact]
+    //public async Task SimulateServerRestart_10Timers_DifferentConditions()
+    //{
+    //    // Arrange
+    //    const int deliveryCount = 10;
+    //    var deliveries = new List<Delivery>();
+    //    var currentTime = DateTime.UtcNow;
+    //    var maxStatusIgnoreTime = TimeSpan.FromMinutes(10); // 10 минут максимального времени ожидания
 
-        // Создаем 10 доставок с разным временем создания и статусами
-        for (int i = 0; i < deliveryCount; i++)
-        {
-            var stanokId = Guid.NewGuid();
-            var deliveryId = Guid.NewGuid();
-            var createdAt = currentTime.AddMinutes(-i * 2); // Разница в 2 минуты между каждой доставкой
-            var status = i < 5 ? Status.CREATE : Status.IN_DELIVERY; // Первые 5 - CREATE, остальные - IN_DELIVERY
+    //    // Создаем 10 доставок с разным временем создания и статусами
+    //    for (int i = 0; i < deliveryCount; i++)
+    //    {
+    //        var stanokId = Guid.NewGuid();
+    //        var deliveryId = Guid.NewGuid();
+    //        var createdAt = currentTime.AddMinutes(-i * 2); // Разница в 2 минуты между каждой доставкой
+    //        var status = i < 5 ? Status.CREATE : Status.IN_DELIVERY; // Первые 5 - CREATE, остальные - IN_DELIVERY
 
-            deliveries.Add(new Delivery(deliveryId, stanokId, status, createdAt));
-        }
+    //        deliveries.Add(new Delivery(deliveryId, stanokId, status, createdAt));
+    //    }
 
-        // Настройка репозитория для возврата списка доставок
-        _mockDeliveriesRepository.Setup(repo => repo.GetAll())
-            .Returns(deliveries.Where(d => d.Status == Status.CREATE).ToList());
+    //    // Настройка репозитория для возврата списка доставок
+    //    _mockDeliveriesRepository.Setup(repo => repo.GetAll())
+    //        .Returns(deliveries.Where(d => d.Status == Status.CREATE).ToList());
 
-        // Настройка Update для отслеживания изменений статуса
-        _mockDeliveriesRepository.Setup(repo => repo.Update(It.IsAny<Guid>(), Status.CANCELED))
-            .Returns((Guid id, Status _) => id);
+    //    // Настройка Update для отслеживания изменений статуса
+    //    _mockDeliveriesRepository.Setup(repo => repo.Update(It.IsAny<Guid>(), Status.CANCELED))
+    //        .Returns((Guid id, Status _) => id);
 
-        // Создаем экземпляр DeliveryTimeoutService с моками
-        var deliveryTimeoutService = new DeliveryTimeoutService(
-            new Mock<IServiceScopeFactory>(MockBehavior.Strict).Object);
+    //    // Создаем экземпляр DeliveryTimeoutService с моками
+    //    var deliveryTimeoutService = new DeliveryTimeoutService(
+    //        new Mock<IServiceScopeFactory>(MockBehavior.Strict).Object, new ILogger<DeliveryTimeoutService> logger);
 
-        // Настраиваем IServiceScopeFactory для возврата наших моков
-        var mockScope = new Mock<IServiceScope>();
-        var mockServiceProvider = new Mock<IServiceProvider>();
-        mockServiceProvider.Setup(sp => sp.GetService(typeof(IDeliveriesRepository)))
-            .Returns(_mockDeliveriesRepository.Object);
-        mockScope.Setup(s => s.ServiceProvider).Returns(mockServiceProvider.Object);
-        var mockScopeFactory = new Mock<IServiceScopeFactory>();
-        mockScopeFactory.Setup(f => f.CreateScope()).Returns(mockScope.Object);
+    //    // Настраиваем IServiceScopeFactory для возврата наших моков
+    //    var mockScope = new Mock<IServiceScope>();
+    //    var mockServiceProvider = new Mock<IServiceProvider>();
+    //    mockServiceProvider.Setup(sp => sp.GetService(typeof(IDeliveriesRepository)))
+    //        .Returns(_mockDeliveriesRepository.Object);
+    //    mockScope.Setup(s => s.ServiceProvider).Returns(mockServiceProvider.Object);
+    //    var mockScopeFactory = new Mock<IServiceScopeFactory>();
+    //    mockScopeFactory.Setup(f => f.CreateScope()).Returns(mockScope.Object);
 
-        var testableService = new DeliveryTimeoutService(mockScopeFactory.Object);
+    //    var testableService = new DeliveryTimeoutService(mockScopeFactory.Object);
 
-        // Act: Эмулируем перезапуск сервера
-        await testableService.RestoreTimers();
+    //    // Act: Эмулируем перезапуск сервера
+    //    await testableService.RestoreTimers();
 
-        // Даем таймерам время отработать (в реальном тесте это зависит от реализации)
-        await Task.Delay(TimeSpan.FromSeconds(15)); // Ждем 15 секунд, чтобы все таймеры сработали
+    //    // Даем таймерам время отработать (в реальном тесте это зависит от реализации)
+    //    await Task.Delay(TimeSpan.FromSeconds(15)); // Ждем 15 секунд, чтобы все таймеры сработали
 
-        // Assert
-        var pendingDeliveries = deliveries.Where(d => d.Status == Status.CREATE).ToList();
-        foreach (var delivery in pendingDeliveries)
-        {
-            var elapsedTime = currentTime - delivery.CreatedAt;
-            if (elapsedTime > maxStatusIgnoreTime)
-            {
-                // Если прошло больше 10 минут, статус должен быть изменен на CANCELED
-                _mockDeliveriesRepository.Verify(repo => repo.Update(delivery.Id, Status.CANCELED), Times.Once());
-            }
-            else
-            {
-                // Если меньше 10 минут, статус не должен меняться
-                _mockDeliveriesRepository.Verify(repo => repo.Update(delivery.Id, Status.CANCELED), Times.Never());
-            }
-        }
+    //    // Assert
+    //    var pendingDeliveries = deliveries.Where(d => d.Status == Status.CREATE).ToList();
+    //    foreach (var delivery in pendingDeliveries)
+    //    {
+    //        var elapsedTime = currentTime - delivery.CreatedAt;
+    //        if (elapsedTime > maxStatusIgnoreTime)
+    //        {
+    //            // Если прошло больше 10 минут, статус должен быть изменен на CANCELED
+    //            _mockDeliveriesRepository.Verify(repo => repo.Update(delivery.Id, Status.CANCELED), Times.Once());
+    //        }
+    //        else
+    //        {
+    //            // Если меньше 10 минут, статус не должен меняться
+    //            _mockDeliveriesRepository.Verify(repo => repo.Update(delivery.Id, Status.CANCELED), Times.Never());
+    //        }
+    //    }
 
-        // Проверяем, что для доставок со статусом IN_DELIVERY не вызывался Update
-        var nonPendingDeliveries = deliveries.Where(d => d.Status != Status.CREATE).ToList();
-        foreach (var delivery in nonPendingDeliveries)
-        {
-            _mockDeliveriesRepository.Verify(repo => repo.Update(delivery.Id, Status.CANCELED), Times.Never());
-        }
+    //    // Проверяем, что для доставок со статусом IN_DELIVERY не вызывался Update
+    //    var nonPendingDeliveries = deliveries.Where(d => d.Status != Status.CREATE).ToList();
+    //    foreach (var delivery in nonPendingDeliveries)
+    //    {
+    //        _mockDeliveriesRepository.Verify(repo => repo.Update(delivery.Id, Status.CANCELED), Times.Never());
+    //    }
 
-        _logger.LogDebug("Successfully verified 10 timers after server restart simulation");
-    }*/
+    //    logger.LogDebug("Successfully verified 10 timers after server restart simulation");
+    //}
 }

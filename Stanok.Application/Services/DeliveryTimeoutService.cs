@@ -14,7 +14,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<DeliveryTimeoutService> _logger;
 
-    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(20);
+    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(10);
 
     private readonly Dictionary<Guid, Timer> _timers;
 
@@ -118,7 +118,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
         return false;
     }
 
-    private async Task RestoreTimers() 
+    public async Task RestoreTimers() 
     {
         using var scope = _scopeFactory.CreateScope();
 
