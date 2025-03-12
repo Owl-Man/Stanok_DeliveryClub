@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Stanok.Core.Abstractions;
 using Stanok.Core.Models;
 using Stanok.DataAccess;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Stanok.Application.Services;
@@ -14,7 +15,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<DeliveryTimeoutService> _logger;
 
-    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(10);
+    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(20);
 
     private readonly Dictionary<Guid, Timer> _timers;
 
@@ -108,7 +109,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
         if (delivery.Status == Status.CREATE
             && DateTime.UtcNow >= delivery.CreatedAt.AddSeconds(MAX_STATUS_IGNORE_TIME.TotalSeconds))
         {
-            deliveryService.Update(deliveryId, Status.CANCELED);
+            deliveryService.Update(deliveryId, Status.CANCELLED);
 
             DisposeTimerForDelivery(deliveryId);
 

@@ -21,5 +21,5 @@ public enum Status
     CREATE,
     IN_DELIVERY,
     DELIVERED,
-    CANCELED
+    CANCELLED
 }
