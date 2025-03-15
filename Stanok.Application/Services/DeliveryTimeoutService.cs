@@ -15,7 +15,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<DeliveryTimeoutService> _logger;
 
-    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(20);
+    public readonly TimeSpan MAX_STATUS_IGNORE_TIME = TimeSpan.FromSeconds(10);
 
     private readonly Dictionary<Guid, Timer> _timers;
 
@@ -63,6 +63,7 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
         foreach (var timer in _timers.Values)
         {
             timer.Dispose();
+            _logger.LogInformation("Disposed " + timer.ToString());
         }
     }
 

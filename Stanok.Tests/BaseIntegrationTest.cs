@@ -6,9 +6,9 @@ namespace Stanok.Tests;
 
 public abstract class BaseIntegrationTest : IClassFixture<TestWebAppFactory>
 {
-    private readonly IServiceScope _scope;
-    protected readonly StanokDbContext dbContext;
-    protected readonly HttpClient _client;
+    protected IServiceScope _scope;
+    protected StanokDbContext dbContext;
+    protected HttpClient _client;
 
     public BaseIntegrationTest(TestWebAppFactory factory)
     {
