@@ -1,7 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Stanok.Core.Models;
+using Stanok.DataAccess;
 using Stanok.DataAccess.Entities;
 using Stanok_DeliveryClub.Contracts;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -9,7 +13,13 @@ namespace Stanok.Tests;
 
 public class DeliveryTimeoutServiceTests : BaseIntegrationTest
 {
-    public DeliveryTimeoutServiceTests(TestWebAppFactory factory) : base(factory) { }
+    private readonly List<DeliveryEntity> _deliveries = new();
+
+    public DeliveryTimeoutServiceTests(TestWebAppFactory factory) : base(factory) 
+    {
+        var lifeTime = factory.Services.GetRequiredService<IHostApplicationLifetime>();
+        lifeTime.ApplicationStarted.Register(() => PrepareTestData());
+    }
 
     [Fact]
     public async Task CreateStanokWithTimers_ChangesStatusAfterTimeout()
@@ -60,48 +70,53 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
     [Fact]
     public async Task CreateStanokWithTimers_ChangesStatusAfterTimeoutWithReload()
     {
-        var stanokResponses = new List<StanokResponse>();
-        for (int i = 0; i < 3; i++)
-        {
-            var requestData = new { name = $"Stanok_{i}", manufacturer = "Test", price = i };
-            var response = await _client.PostAsync("/Stanoks/stanok.create", JsonContent.Create(requestData));
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var createdStanok = JsonSerializer.Deserialize<StanokResponse>(responseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            stanokResponses.Add(createdStanok);
-        }
-
-
-        var delivery1 = dbContext.Deliveries.FirstOrDefault(d => d.StanokId == stanokResponses[0].id);
-        var delivery2 = dbContext.Deliveries.FirstOrDefault(d => d.StanokId == stanokResponses[1].id);
-        var delivery3 = dbContext.Deliveries.FirstOrDefault(d => d.StanokId == stanokResponses[2].id);
-
-        Assert.NotNull(delivery1);
-        Assert.NotNull(delivery2);
-        Assert.NotNull(delivery3);
-
-        delivery1.CreatedAt = DateTime.UtcNow - TimeSpan.FromSeconds(20); // Просрочена на 20 секунд
-        delivery2.CreatedAt = DateTime.UtcNow - TimeSpan.FromSeconds(10); // Только что просрочена
-        delivery3.CreatedAt = DateTime.UtcNow - TimeSpan.FromSeconds(2);  // Еще 8 секунд
-
-        dbContext.SaveChanges();
-
-        var delivery1FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == delivery1.Id);
-        var delivery2FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == delivery2.Id);
-        Assert.Equal(delivery1.CreatedAt, delivery1FromDb.CreatedAt);
-        Assert.Equal(delivery2.CreatedAt, delivery2FromDb.CreatedAt);
+        var delivery1FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == _deliveries[0].Id);
+        var delivery2FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == _deliveries[1].Id);
+        Assert.Equal(delivery1FromDb.CreatedAt, delivery1FromDb.CreatedAt);
+        Assert.Equal(delivery2FromDb.CreatedAt, delivery2FromDb.CreatedAt);
         Assert.Equal("CANCELLED", delivery1FromDb.Status.ToString());
         Assert.Equal("CANCELLED", delivery2FromDb.Status.ToString());
 
-        await Task.Delay(TimeSpan.FromSeconds(8) + TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromSeconds(8));
 
-        var delivery3FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == delivery3.Id);
+        var delivery3FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == _deliveries[2].Id);
         Assert.Equal("CANCELLED", delivery3FromDb.Status.ToString());
 
         // Drop db
         await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Deliveries\" RESTART IDENTITY CASCADE;");
         await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Stanoks\" RESTART IDENTITY;");
+    }
+
+    private void PrepareTestData()
+    {
+        var stanokId1 = Guid.NewGuid();
+        var stanokId2 = Guid.NewGuid();
+        var stanokId3 = Guid.NewGuid();
+
+        var delivery1 = new DeliveryEntity
+        {
+            StanokId = stanokId1,
+            Status = Status.CREATE,
+            CreatedAt = DateTime.UtcNow - TimeSpan.FromSeconds(20) // Просрочена на 10 секунд
+        };
+        var delivery2 = new DeliveryEntity
+        {
+            StanokId = stanokId2,
+            Status = Status.CREATE,
+            CreatedAt = DateTime.UtcNow - TimeSpan.FromSeconds(10) // Только что просрочена
+        };
+        var delivery3 = new DeliveryEntity
+        {
+            StanokId = stanokId3,
+            Status = Status.CREATE,
+            CreatedAt = DateTime.UtcNow - TimeSpan.FromSeconds(1) // Останется активной 9 секунд
+        };
+
+        dbContext.Deliveries.AddRange(delivery1, delivery2, delivery3);
+        _deliveries.AddRange(delivery1, delivery2, delivery3);
+
+        Debug.WriteLine("DATA PREPARED------------------------------------->");
+
+        dbContext.SaveChanges();
     }
 }
