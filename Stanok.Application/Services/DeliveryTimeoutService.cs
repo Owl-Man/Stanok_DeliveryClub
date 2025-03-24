@@ -29,7 +29,13 @@ public class DeliveryTimeoutService : BackgroundService, IHostedService, IDispos
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Task.Run(() => RestoreTimers());
+        //Task.Run(() => RestoreTimers());
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+            await RestoreTimers();
+        }, cancellationToken);
 
         return Task.CompletedTask;
     }

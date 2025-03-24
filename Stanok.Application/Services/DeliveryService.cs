@@ -14,9 +14,9 @@ public class DeliveryService(IDeliveriesRepository deliveriesRepository) : IDeli
         return deliveriesRepository.GetById(id);
     }
 
-    public Guid Create(Guid id, Guid stanokId)
+    public Guid Create(Guid stanokId)
     {
-        return deliveriesRepository.Create(id, stanokId);
+        return deliveriesRepository.Create(stanokId);
     }
 
     public Guid Update(Guid id, Status status)

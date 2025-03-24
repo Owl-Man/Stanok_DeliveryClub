@@ -7,11 +7,11 @@ namespace Stanok.DataAccess.Repositories;
 
 public class StanoksRepository(StanokDbContext context, ILogger<StanoksRepository> logger) : IStanoksRepository
 {
-    public Guid Create(Guid id, string name, string manufacturer, double price)
+    public Guid Create(string name, string manufacturer, double price)
     {
         try
         {
-            var stanok = new StanokEntity() { Id = id, Name = name, Manufacturer = manufacturer, Price = price };
+            var stanok = new StanokEntity() { Name = name, Manufacturer = manufacturer, Price = price };
 
             context.Stanoks.Add(stanok);
             context.SaveChanges();
@@ -20,7 +20,7 @@ public class StanoksRepository(StanokDbContext context, ILogger<StanoksRepositor
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при создании станок {StanokId}.", id);
+            logger.LogError(ex, "Ошибка при создании станок {StanokName}.", name);
             throw;
         }
     }

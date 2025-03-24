@@ -8,7 +8,7 @@ namespace Stanok_DeliveryClub.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class DeliveriesController(IDeliveryService deliveryService) : ControllerBase
+public class DeliveriesController(IDeliveryService deliveryService, IDeliveryTimeoutService deliveryTimeoutService) : ControllerBase
 {
     [HttpPut("delivery.status.change")]
     public ActionResult<DeliveryResponse> ChangeDeliveryStatus([FromBody] DeliveryRequest request)
@@ -16,6 +16,8 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
         var delivery = deliveryService.GetDeliveryById(request.id);
 
         var deliveryId = deliveryService.Update(request.id, request.status);
+
+        deliveryTimeoutService.DisposeTimerForDelivery(deliveryId);
 
         var response = new DeliveryResponse(deliveryId, request.id, request.status, delivery.CreatedAt);
 

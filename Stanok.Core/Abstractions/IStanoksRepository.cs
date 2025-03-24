@@ -2,6 +2,6 @@
 {
     public interface IStanoksRepository
     {
-        Guid Create(Guid id, string name, string manufacturer, double price);
+        Guid Create(string name, string manufacturer, double price);
     }
 }

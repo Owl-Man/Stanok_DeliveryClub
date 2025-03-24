@@ -52,11 +52,11 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
         }
     }
 
-    public Guid Create(Guid id, Guid stanokId)
+    public Guid Create(Guid stanokId)
     {
         try
         {
-            var deliveryEntity = new DeliveryEntity() { Id = id, StanokId = stanokId, Status = Status.CREATE, CreatedAt = DateTime.UtcNow};
+            var deliveryEntity = new DeliveryEntity() { StanokId = stanokId, Status = Status.CREATE, CreatedAt = DateTime.UtcNow};
 
             context.Deliveries.Add(deliveryEntity);
             context.SaveChanges();
@@ -65,7 +65,7 @@ public class DeliveriesRepository(StanokDbContext context, ILogger<DeliveriesRep
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Ошибка при создании доставки {DeliveryId}.", id);
+            logger.LogError(ex, "Ошибка при создании доставки {StanokId}.", stanokId);
             throw;
         }
     }

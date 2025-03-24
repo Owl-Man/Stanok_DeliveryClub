@@ -12,11 +12,9 @@ public class StanoksController(IStanokService stanokService, IDeliveryService de
     [HttpPost("stanok.create")]
     public ActionResult<StanokResponse> CreateStanok([FromBody] StanokRequest request)
     {
-        var stanok = new Stanok.Core.Models.Stanok(Guid.NewGuid(), request.name, request.manufacturer, request.price);
+        var stanokId = stanokService.Create(request.name, request.manufacturer, request.price);
 
-        var stanokId = stanokService.Create(stanok.Id, stanok.Name, stanok.Manufacturer, stanok.Price);
-
-        var deliveryID = deliveryService.Create(Guid.NewGuid(), stanokId);
+        var deliveryID = deliveryService.Create(stanokId);
 
         deliveryTimeoutService.StartTimerForNewDelivery(deliveryID);
 

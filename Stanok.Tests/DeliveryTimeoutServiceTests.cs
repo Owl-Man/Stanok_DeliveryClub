@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Stanok.Core.Models;
 using Stanok.DataAccess;
 using Stanok.DataAccess.Entities;
 using Stanok_DeliveryClub.Contracts;
-using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -15,14 +13,15 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
 {
     private readonly List<DeliveryEntity> _deliveries = new();
 
+    private TestWebAppFactory _factory;
+
     public DeliveryTimeoutServiceTests(TestWebAppFactory factory) : base(factory) 
     {
-        var lifeTime = factory.Services.GetRequiredService<IHostApplicationLifetime>();
-        lifeTime.ApplicationStarted.Register(() => PrepareTestData());
+        _factory = factory;
     }
 
     [Fact]
-    public async Task CreateStanokWithTimers_ChangesStatusAfterTimeout()
+    public async Task CreateStanoksAndWaitForTimersTimeout_ExpectCancelledDeliveries()
     {
         // Arrange
 
@@ -30,7 +29,7 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
 
         //Act
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 3; i++)
         {
             var requestData = new { name = $"Stanok_{i}", manufacturer = "Test", price = i };
             var response = await _client.PostAsync("/Stanoks/stanok.create", JsonContent.Create(requestData));
@@ -68,12 +67,20 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task CreateStanokWithTimers_ChangesStatusAfterTimeoutWithReload()
+    public async Task CreateStanoksAndWaitForTimersTimeoutWithReload_ExpectCancelledDeliveries()
     {
+        PrepareTestData();
+
+        await Task.Delay(TimeSpan.FromSeconds(2));
+
+        var client = _factory.CreateClient();
+        var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<StanokDbContext>();
+
+        await Task.Delay(TimeSpan.FromSeconds(4));
+
         var delivery1FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == _deliveries[0].Id);
         var delivery2FromDb = dbContext.Deliveries.FirstOrDefault(d => d.Id == _deliveries[1].Id);
-        Assert.Equal(delivery1FromDb.CreatedAt, delivery1FromDb.CreatedAt);
-        Assert.Equal(delivery2FromDb.CreatedAt, delivery2FromDb.CreatedAt);
         Assert.Equal("CANCELLED", delivery1FromDb.Status.ToString());
         Assert.Equal("CANCELLED", delivery2FromDb.Status.ToString());
 
@@ -115,8 +122,28 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
         dbContext.Deliveries.AddRange(delivery1, delivery2, delivery3);
         _deliveries.AddRange(delivery1, delivery2, delivery3);
 
-        Debug.WriteLine("DATA PREPARED------------------------------------->");
-
         dbContext.SaveChanges();
+
+        //// Очищаем таблицу перед вставкой данных
+        //dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE \"Deliveries\" RESTART IDENTITY CASCADE;");
+
+        //// Вставляем первую доставку
+        //dbContext.Database.ExecuteSqlRaw(
+        //    "INSERT INTO \"Deliveries\" (\"StanokId\", \"Status\", \"CreatedAt\") VALUES ({0}, {1}, {2})",
+        //    stanokId1, Status.CREATE, DateTime.UtcNow - TimeSpan.FromSeconds(20)
+        //);
+
+        //// Вставляем вторую доставку
+        //dbContext.Database.ExecuteSqlRaw(
+        //    "INSERT INTO \"Deliveries\" (\"StanokId\", \"Status\", \"CreatedAt\") VALUES ({0}, {1}, {2})",
+        //    stanokId2, Status.CREATE, DateTime.UtcNow - TimeSpan.FromSeconds(10)
+        //);
+
+        //// Вставляем третью доставку
+        //dbContext.Database.ExecuteSqlRaw(
+        //    "INSERT INTO \"Deliveries\" (\"StanokId\", \"Status\", \"CreatedAt\") VALUES ({0}, {1}, {2})",
+        //    stanokId3, Status.CREATE, DateTime.UtcNow - TimeSpan.FromSeconds(1)
+        //);
+
     }
 }

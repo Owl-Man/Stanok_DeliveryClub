@@ -4,8 +4,8 @@ namespace Stanok.Application.Services;
 
 public class StanokService(IStanoksRepository stanoksRepository) : IStanokService
 {
-    public Guid Create(Guid id, string name, string manufacturer, double price)
+    public Guid Create(string name, string manufacturer, double price)
     {
-        return stanoksRepository.Create(id, name, manufacturer, price);
+        return stanoksRepository.Create(name, manufacturer, price);
     }
 }
