@@ -5,12 +5,10 @@ using Microsoft.Extensions.Logging;
 using Stanok.Core.Abstractions;
 using Stanok.Core.Models;
 using Stanok.DataAccess;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Stanok.Application.Services;
 
-public class DeliveryTimeoutService : BackgroundService, IHostedService, IDisposable, IDeliveryTimeoutService
+public class DeliveryTimeoutService : BackgroundService, IHostedService, IDeliveryTimeoutService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<DeliveryTimeoutService> _logger;

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Stanok.Application.Services;
 using Stanok.Core.Abstractions;
-using Stanok.Core.Models;
 using Stanok_DeliveryClub.Contracts;
 
 namespace Stanok_DeliveryClub.Controllers;

@@ -45,8 +45,6 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
             Assert.Equal("CREATE", deliveryFromDb.Status.ToString());
 
             stanoks.Add((createdStanok.id, createdStanok.name, deliveryFromDb.Id));
-
-            //await Task.Delay(TimeSpan.FromSeconds(new Random().Next(5, 11)));
         }
 
         await Task.Delay(TimeSpan.FromSeconds(15));
@@ -123,27 +121,5 @@ public class DeliveryTimeoutServiceTests : BaseIntegrationTest
         _deliveries.AddRange(delivery1, delivery2, delivery3);
 
         dbContext.SaveChanges();
-
-        //// Очищаем таблицу перед вставкой данных
-        //dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE \"Deliveries\" RESTART IDENTITY CASCADE;");
-
-        //// Вставляем первую доставку
-        //dbContext.Database.ExecuteSqlRaw(
-        //    "INSERT INTO \"Deliveries\" (\"StanokId\", \"Status\", \"CreatedAt\") VALUES ({0}, {1}, {2})",
-        //    stanokId1, Status.CREATE, DateTime.UtcNow - TimeSpan.FromSeconds(20)
-        //);
-
-        //// Вставляем вторую доставку
-        //dbContext.Database.ExecuteSqlRaw(
-        //    "INSERT INTO \"Deliveries\" (\"StanokId\", \"Status\", \"CreatedAt\") VALUES ({0}, {1}, {2})",
-        //    stanokId2, Status.CREATE, DateTime.UtcNow - TimeSpan.FromSeconds(10)
-        //);
-
-        //// Вставляем третью доставку
-        //dbContext.Database.ExecuteSqlRaw(
-        //    "INSERT INTO \"Deliveries\" (\"StanokId\", \"Status\", \"CreatedAt\") VALUES ({0}, {1}, {2})",
-        //    stanokId3, Status.CREATE, DateTime.UtcNow - TimeSpan.FromSeconds(1)
-        //);
-
     }
 }
